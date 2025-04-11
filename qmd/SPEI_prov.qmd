@@ -1,13 +1,37 @@
-### Fichier SPEI recup sur SPEI Global ### 
-# Je veux merge les 23 fichiers SPEI des provenances # 
+---
+title: "SPEI_prov"
+author: "David Chassagnaud"
+date: "`r Sys.Date()`"
 
-#### Packages ####
+format:
+  html:
+    toc: true         # Active la table des matières
+    toc-depth: 2      # Niveau de profondeur de la table des matières (1 à 6)
+    toc-location: right  # Position : left, right ou float
+    number-sections: true  # Numérote les sections
+    theme: united      # Tu peux changer le thème : cosmo, flatly, united, etc.
+    code-fold: true   # Permet de replier/déplier les blocs de code
+    code-tools: true  # Affiche les outils (copier le code, etc.)
+    smooth-scroll: true  # Ajoute un défilement fluide
+---
+
+Fichier SPEI récupéré sur SPEI Global : https://spei.csic.es/database.html
+
+Je veux merge les 23 fichiers SPEI des provenances que j'ai pu récuperer sur ce database
+
+# Packages nécessaires
+
+```{r Packages, message = FALSE}
 library(dplyr)
 library(readr)
 library (lubridate)
 library(ggplot2)
 library(plotly)
+```
 
+# Concaténation jdd prov
+
+```{r Concaténation jdd prov, message = FALSE}
 # Dossier des fichiers SPEI 
 folder_path <- "/Users/david/Desktop/SPEI_prov"
 
@@ -26,14 +50,18 @@ compiled_df <- lapply(file_list, function(file) {
 head(compiled_df)
 
 # Sauvegarder le fichier final dans mon working directory
-write_csv(compiled_df, file.path("SPEI_merged.csv"))
+# write_csv(compiled_df, file.path("SPEI_merged.csv"))
 
 # import de SPEI_merged 
 SPEI_merged <- read.csv("~/Desktop/R & Git/GFF_SPEI/raw_data/SPEI_merged.csv", sep=",")
 #View(SPEI_merged)
+head(SPEI_merged)
 str(SPEI_merged)
+```
 
-#### Mise en forme JDD ####
+# Mise en forme jdd
+
+```{r Mise en forme jdd}
 SPEI_merged$dates <- as.Date(SPEI_merged$dates, format="%Y-%m-%d")  # Convertir la colonne 'dates' en format Date (avec jour, mois et année)
 SPEI_merged$dates <- format(SPEI_merged$dates, "%Y-%m") # Extraire uniquement le mois et l'année (et en garder le format Date)
 SPEI_merged$prov <- as.factor(SPEI_merged$prov) # Convertir 'prov' en facteur
@@ -45,7 +73,7 @@ SPEI_filtered <- SPEI_merged %>%
   filter(year(as.Date(paste0(SPEI_merged$dates, "-01"), format="%Y-%m-%d")) >= 1960 & 
            year(as.Date(paste0(SPEI_merged$dates, "-01"), format="%Y-%m-%d")) <= 1990)
 
-write_csv(SPEI_filtered, file.path("SPEI_filtered"))
+# write_csv(SPEI_filtered, file.path("SPEI_filtered"))
 
 
 # Garder uniquement les lignes correspondant au mois de juillet
@@ -61,17 +89,18 @@ moyennes_juillet <- SPEI_filtered_july %>%
 print(moyennes_juillet)
 
 
-  write_csv(SPEI_juillet, file.path("SPEI_juillet"))
+# write_csv(SPEI_juillet, file.path("SPEI_juillet"))
   
   # Filtrer les lignes pour ne garder que la période de végétation (avril à septembre)
-  SPEI_veg <- SPEI_filtered %>%
-    filter(format(dates, "%m") %in% c("04", "05", "06", "07", "08", "09"))
+ # SPEI_veg <- SPEI_filtered %>%
+  #  filter(format(dates, "%m") %in% c("04", "05", "06", "07", "08", "09"))
   
-  write_csv(SPEI_veg, file.path("SPEI_veg"))
+#  write_csv(SPEI_veg, file.path("SPEI_veg"))
   
+```
 
-
-#### Visualisation SPEI ####
+# Visualisation jdd SPEI
+```{r Visualisation jdd SPEI}
 
 levels(SPEI_filtered$prov) # je vérifie la cohérence de mon jdd et que j'ai bien mes 23 prov
 table(SPEI_filtered$prov) # # je vérifie le nombre d'occurrences de chaque provenance 371 -> 31 années (1960 à 1990) x 12 
@@ -82,7 +111,7 @@ moyennes_spei <- SPEI_filtered %>%
   summarise(moyenne_spei = mean(spei01, na.rm = TRUE)) %>%
   arrange(moyenne_spei)
 
-write_csv(moyennes_spei, file.path("mean_spei_1960_1990"))
+# write_csv(moyennes_spei, file.path("mean_spei_1960_1990"))
 
 #### Plot évolution SPEI ####
 # Convertir la colonne 'dates' en format Date
@@ -108,5 +137,5 @@ ggplot(moyennes_annuelles, aes(x = as.numeric(year), y = moyenne_spei, color = p
                                   max(moyennes_annuelles$year), by = 5)) +  # Ajuster les années
   theme(legend.position = "bottom")  # Positionner la légende en bas
 
-
+```
 
